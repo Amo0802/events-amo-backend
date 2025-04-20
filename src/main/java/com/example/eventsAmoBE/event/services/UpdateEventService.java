@@ -29,6 +29,6 @@ public class UpdateEventService {
             return event;
         }
 
-        throw new RuntimeException();
+        throw new RuntimeException("Id doesn't exist!");
     }
 }

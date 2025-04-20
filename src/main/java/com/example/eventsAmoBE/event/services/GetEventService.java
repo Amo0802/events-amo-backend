@@ -20,6 +20,6 @@ public class GetEventService {
         if(eventOptional.isPresent()){
             return eventOptional.get();
         }
-        throw new RuntimeException();
+        throw new RuntimeException("Id doesn't exist!");
     }
 }

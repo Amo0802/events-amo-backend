@@ -49,13 +49,13 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @GetMapping("event/{id}")
+    @GetMapping("eventGet/{id}")
     public ResponseEntity<Event> getEvent(@PathVariable Long id){
         Event response = getEventService.execute(id);
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/product/{id}")
+    @PutMapping("/event/{id}")
     public ResponseEntity<Event> updateEvent(@PathVariable Long id, @RequestBody Event event){
         Event response = updateEventService.execute(id, event);
         return ResponseEntity.ok(response);
@@ -72,7 +72,7 @@ public class EventController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/product/category")
+    @GetMapping("/event/category")
     public ResponseEntity<PageResponse<Event>> getEventsByCategory(
             @RequestParam String category,
             @RequestParam(required = false, defaultValue = "0") int page,
@@ -84,7 +84,7 @@ public class EventController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/product/main")
+    @GetMapping("/event/main")
     public ResponseEntity<PageResponse<Event>> getMainEvents(
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int size
@@ -95,7 +95,7 @@ public class EventController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/product/promoted")
+    @GetMapping("/event/promoted")
     public ResponseEntity<PageResponse<Event>> getPromotedEvents(
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int size
@@ -106,7 +106,7 @@ public class EventController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/product/search")
+    @GetMapping("/event/search")
     public ResponseEntity<PageResponse<Event>> searchEvents(
             @RequestParam String search,
             @RequestParam(required = false, defaultValue = "0") int page,

@@ -19,8 +19,8 @@ public class GetEventsService {
         this.eventRepository = eventRepository;
     }
 
+    @Cacheable(value = "events", key = "'allEvents_' + #pageable.pageNumber + '_' + #pageable.pageSize", cacheManager = "eventCacheManager")
     public PageResponse<Event> execute(Pageable pageable) {
-
         Page<Event> page = eventRepository.findUpcomingEvents(LocalDateTime.now(), pageable);
 
         return new PageResponse<>(

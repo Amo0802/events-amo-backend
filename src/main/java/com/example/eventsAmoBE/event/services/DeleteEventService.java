@@ -23,6 +23,6 @@ public class DeleteEventService {
             eventRepository.deleteById(id);
             return null;
         }
-        throw new RuntimeException();
+        throw new RuntimeException("Id doesn't exist!");
     }
 }
