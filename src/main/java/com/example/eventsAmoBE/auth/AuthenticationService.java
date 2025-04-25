@@ -40,6 +40,11 @@ public class AuthenticationService {
     }
 
     public AuthResponseDto authenticate(AuthRequestDto request) {
+        User user1 = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        System.out.println("Password matches: " +
+                passwordEncoder.matches(request.getPassword(), user1.getPassword()));
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),

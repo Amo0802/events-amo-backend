@@ -1,20 +1,25 @@
 package com.example.eventsAmoBE.user;
 
 import com.example.eventsAmoBE.event.EventRepository;
+//import com.example.eventsAmoBE.event.model.City;
 import com.example.eventsAmoBE.event.model.Event;
+import com.example.eventsAmoBE.event.model.EventDto;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +29,6 @@ public class UserService {
     private final EventRepository eventRepository;
     private final JavaMailSender mailSender;
 
-    @Cacheable(value = "users", key = "#id")
     public User getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -37,7 +41,11 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    @CacheEvict(value = "users", key = "#id")
+
+    public void deleteCurrentUser() {
+        userRepository.delete(getCurrentUser());
+    }
+
     @Transactional
     public User updateUser(Long id, User userDetails) {
         User user = getUserById(id);
@@ -50,7 +58,6 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    @CacheEvict(value = "users", key = "#id")
     @Transactional
     public void deleteUser(Long id) {
         User user = getUserById(id);
@@ -77,9 +84,12 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public Set<Event> getSavedEvents() {
+    public Set<EventDto> getSavedEvents() {
         User user = getCurrentUser();
-        return user.getSavedEvents();
+
+        return user.getSavedEvents().stream()
+                .map(event -> new EventDto(event, user))
+                .collect(Collectors.toSet());
     }
 
     @Transactional
@@ -108,12 +118,13 @@ public class UserService {
         eventRepository.save(event);
     }
 
-    public Set<Event> getAttendingEvents() {
+    public Set<EventDto> getAttendingEvents() {
         User user = getCurrentUser();
-        return user.getAttendingEvents();
+        return user.getAttendingEvents().stream()
+                .map(event -> new EventDto(event, user))
+                .collect(Collectors.toSet());
     }
 
-    @CacheEvict(value = "users", key = "#id")
     @Transactional
     public User makeUserAdmin(Long id) {
         User user = getUserById(id);
@@ -121,19 +132,18 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    @Transactional
-    public void submitEventProposal(Event event) {
+    public void submitEventProposal(Event event, List<MultipartFile> images)  {
         User user = getCurrentUser();
 
         // Send email to admin with event proposal
         try {
-            sendEventProposalEmail(user, event);
+            sendEventProposalEmail(user, event, images);
         } catch (MessagingException e) {
             throw new RuntimeException("Failed to send event proposal email", e);
         }
     }
 
-    private void sendEventProposalEmail(User user, Event event) throws MessagingException {
+    private void sendEventProposalEmail(User user, Event event, List<MultipartFile> images) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
@@ -155,6 +165,28 @@ public class UserService {
         );
 
         helper.setText(content);
+
+        // Add image attachments
+        if (images != null && !images.isEmpty()) {
+            for (int i = 0; i < images.size(); i++) {
+                try {
+                    MultipartFile image = images.get(i);
+                    String originalFilename = image.getOriginalFilename();
+                    String extension = originalFilename != null ?
+                            originalFilename.substring(originalFilename.lastIndexOf(".")) : ".jpg";
+                    String filename = "event-image-" + (i+1) + "-" + System.currentTimeMillis() + extension;
+                    helper.addAttachment(filename, new ByteArrayResource(image.getBytes()));
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to process image attachment", e);
+                }
+            }
+        }
+
         mailSender.send(message);
     }
+
+//    public City getCity(){
+//        User user = getCurrentUser();
+//        return user.getCity();
+//    }
 }

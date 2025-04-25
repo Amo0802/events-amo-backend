@@ -1,8 +1,11 @@
 package com.example.eventsAmoBE.user;
 
+import com.example.eventsAmoBE.event.model.City;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +19,8 @@ import java.util.Set;
 @Data
 @Builder
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "users")
 public class User implements UserDetails {
 
@@ -27,6 +32,7 @@ public class User implements UserDetails {
     private String lastName;
     private String email;
     private String password;
+//    private City city;
     private boolean isAdmin;
 
     @ManyToMany

@@ -1,6 +1,7 @@
 package com.example.eventsAmoBE.event;
 
 import com.example.eventsAmoBE.event.model.Category;
+import com.example.eventsAmoBE.event.model.City;
 import com.example.eventsAmoBE.event.model.Event;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,11 +43,18 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Query("""
     SELECT DISTINCT e FROM Event e
     JOIN e.categories c
-    WHERE c = :category
+    WHERE (:category IS NULL OR c = :category)
+    AND (:city IS NULL OR e.city = :city)
     AND e.startDateTime > :now
     ORDER BY e.startDateTime ASC
 """)
-    Page<Event> findUpcomingByCategoriesIn(@Param("categories") Category category, @Param("now") LocalDateTime now, Pageable pageable);
+    Page<Event> findUpcomingByCityAndCategory(
+            @Param("city") City city,
+            @Param("category") Category category,
+            @Param("now") LocalDateTime now,
+            Pageable pageable
+    );
+
 
     @Query("""
     SELECT e FROM Event e

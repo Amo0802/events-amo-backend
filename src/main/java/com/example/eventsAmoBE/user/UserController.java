@@ -1,11 +1,19 @@
 package com.example.eventsAmoBE.user;
 
+import com.example.eventsAmoBE.event.model.Category;
+import com.example.eventsAmoBE.event.model.City;
 import com.example.eventsAmoBE.event.model.Event;
+import com.example.eventsAmoBE.event.model.EventDto;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -17,19 +25,26 @@ public class UserController {
 
     @GetMapping("/{id}")
     @PreAuthorize("authentication.principal.id == #id or hasRole('ADMIN')")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getUserById(id));
+    public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(new UserDto(userService.getUserById(id)));
     }
 
     @GetMapping("/current")
-    public ResponseEntity<User> getCurrentUser() {
-        return ResponseEntity.ok(userService.getCurrentUser());
+    public ResponseEntity<UserDto> getCurrentUser() {
+        return ResponseEntity.ok(new UserDto(userService.getCurrentUser()));
+    }
+
+    @DeleteMapping("/current")
+    @Transactional
+    public ResponseEntity<Void> deleteCurrentUser() {
+        userService.deleteCurrentUser();
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("authentication.principal.id == #id")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
-        return ResponseEntity.ok(userService.updateUser(id, user));
+    public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @RequestBody User user) {
+        return ResponseEntity.ok(new UserDto(userService.updateUser(id, user)));
     }
 
     @DeleteMapping("/{id}")
@@ -53,7 +68,7 @@ public class UserController {
     }
 
     @GetMapping("/saved-events")
-    public ResponseEntity<Set<Event>> getSavedEvents() {
+    public ResponseEntity<Set<EventDto>> getSavedEvents() {
         return ResponseEntity.ok(userService.getSavedEvents());
     }
 
@@ -71,21 +86,48 @@ public class UserController {
     }
 
     @GetMapping("/attending-events")
-    public ResponseEntity<Set<Event>> getAttendingEvents() {
+    public ResponseEntity<Set<EventDto>> getAttendingEvents() {
         return ResponseEntity.ok(userService.getAttendingEvents());
     }
 
     // For admin use only - to make another user an admin
     @PutMapping("/make-admin/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> makeAdmin(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.makeUserAdmin(id));
+    public ResponseEntity<UserDto> makeAdmin(@PathVariable Long id) {
+        return ResponseEntity.ok(new UserDto(userService.makeUserAdmin(id)));
     }
 
-    // For admin use only - user event submission
     @PostMapping("/submit-event")
-    public ResponseEntity<Void> submitEvent(@RequestBody Event event) {
-        userService.submitEventProposal(event);
+    public ResponseEntity<Void> submitEvent(
+            @RequestPart("name") String name,
+            @RequestPart("description") String description,
+            @RequestPart("address") String address,
+            @RequestPart("startDateTime") String startDateTime,
+            @RequestPart("price") String price,
+            @RequestPart("categories") List<String> categories,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) {
+
+        // Convert string parameters to Event object
+        Event event = new Event();
+        event.setName(name);
+        event.setDescription(description);
+        event.setAddress(address);
+        event.setStartDateTime(LocalDateTime.parse(startDateTime));
+        event.setPrice(Double.parseDouble(price));
+
+        // Convert string categories to enum Category
+        Set<Category> categorySet = new HashSet<>();
+        for (String category : categories) {
+            categorySet.add(Category.valueOf(category));
+        }
+        event.setCategories(categorySet);
+
+        userService.submitEventProposal(event, images);
         return ResponseEntity.ok().build();
     }
+
+//    @GetMapping("/city")
+//    public ResponseEntity<City> getCity(){
+//        return ResponseEntity.ok(userService.getCity());
+//    }
 }

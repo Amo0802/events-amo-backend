@@ -1,7 +1,7 @@
 package com.example.eventsAmoBE.event.services;
 
 import com.example.eventsAmoBE.event.EventRepository;
-import com.example.eventsAmoBE.event.model.Event;
+import com.example.eventsAmoBE.event.model.EventDto;
 import com.example.eventsAmoBE.event.utils.PageResponse;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -20,8 +20,8 @@ public class GetMainEventsService {
     }
 
     @Cacheable(value = "mainEvents", key = "'mainEvents_' + #pageable.pageNumber + '_' + #pageable.pageSize", cacheManager = "eventCacheManager")
-    public PageResponse<Event> execute(Pageable pageable){
-        Page<Event> page = eventRepository.findUpcomingMainEvents(LocalDateTime.now(), pageable);
+    public PageResponse<EventDto> execute(Pageable pageable){
+        Page<EventDto> page = eventRepository.findUpcomingMainEvents(LocalDateTime.now(), pageable).map(EventDto::new);
         return new PageResponse<>(page);
     }
 }

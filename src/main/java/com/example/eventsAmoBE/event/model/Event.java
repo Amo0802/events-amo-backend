@@ -2,7 +2,9 @@ package com.example.eventsAmoBE.event.model;
 
 import com.example.eventsAmoBE.user.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -12,7 +14,9 @@ import java.util.Set;
 
 @Data
 @Entity
-@Table(name = "com/example/eventsAmoBE/event")
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "event")
 public class Event {
 
     @Id
@@ -21,9 +25,14 @@ public class Event {
 
     private String name;
     private String description;
-    private City city;
+    private String imageUrl;
+    private String address;
     private LocalDateTime startDateTime;
     private Double price;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "city")
+    private City city;
 
     @ElementCollection
     @CollectionTable(name = "event_categories", joinColumns = @JoinColumn(name = "event_id"))
@@ -32,11 +41,8 @@ public class Event {
     private Set<Category> categories = new HashSet<>();
 
     private int priority;
-    private boolean eventSaved;
-    private boolean eventAttending;
     private boolean mainEvent;
     private boolean promoted;
-    private boolean notification;
 
     @ManyToMany(mappedBy = "attendingEvents")
     private Set<User> attendees = new HashSet<>();

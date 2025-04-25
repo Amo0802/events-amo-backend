@@ -1,7 +1,7 @@
 package com.example.eventsAmoBE.event.services;
 
 import com.example.eventsAmoBE.event.EventRepository;
-import com.example.eventsAmoBE.event.model.Event;
+import com.example.eventsAmoBE.event.model.EventDto;
 import com.example.eventsAmoBE.event.utils.PageResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,10 +18,10 @@ public class SearchEventService {
         this.eventRepository = eventRepository;
     }
 
-    public PageResponse<Event> execute(String search, Pageable pageable){
+    public PageResponse<EventDto> execute(String search, Pageable pageable){
 
-        Page<Event> page = eventRepository.searchUpcomingByNameOrDescription(
-                        search, LocalDateTime.now(), pageable);
+        Page<EventDto> page = eventRepository.searchUpcomingByNameOrDescription(
+                        search, LocalDateTime.now(), pageable).map(EventDto::new);
 
         return new PageResponse<>(page);
     }
