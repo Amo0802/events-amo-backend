@@ -1,7 +1,7 @@
 package com.example.eventsAmoBE.auth;
 
 import com.example.eventsAmoBE.security.JwtService;
-import com.example.eventsAmoBE.user.User;
+import com.example.eventsAmoBE.user.model.User;
 import com.example.eventsAmoBE.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;

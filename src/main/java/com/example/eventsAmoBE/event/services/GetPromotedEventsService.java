@@ -2,7 +2,7 @@ package com.example.eventsAmoBE.event.services;
 
 import com.example.eventsAmoBE.event.EventRepository;
 import com.example.eventsAmoBE.event.model.EventDto;
-import com.example.eventsAmoBE.event.utils.PageResponse;
+import com.example.eventsAmoBE.utils.PageResponse;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

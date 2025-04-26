@@ -3,7 +3,7 @@ package com.example.eventsAmoBE.event;
 import com.example.eventsAmoBE.event.model.Event;
 import com.example.eventsAmoBE.event.model.EventDto;
 import com.example.eventsAmoBE.event.services.*;
-import com.example.eventsAmoBE.event.utils.PageResponse;
+import com.example.eventsAmoBE.utils.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,8 +41,8 @@ public class EventController {
     }
 
     @GetMapping("eventGet/{id}")
-    public ResponseEntity<EventDto> getEvent(@PathVariable Long eventId) {
-        EventDto response = getEventService.execute(eventId);
+    public ResponseEntity<EventDto> getEvent(@PathVariable Long id) {
+        EventDto response = getEventService.execute(id);
         return ResponseEntity.ok(response);
     }
 

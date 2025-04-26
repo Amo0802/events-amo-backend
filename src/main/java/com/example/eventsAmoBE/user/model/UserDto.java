@@ -1,4 +1,4 @@
-package com.example.eventsAmoBE.user;
+package com.example.eventsAmoBE.user.model;
 
 import lombok.Data;
 
@@ -11,7 +11,7 @@ public class UserDto {
     private String email;
     private boolean isAdmin;
 
-    UserDto(User user){
+    public UserDto(User user){
         this.id = user.getId();
         this.name = user.getName();;
          this.lastName = user.getLastName();

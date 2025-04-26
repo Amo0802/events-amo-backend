@@ -1,4 +1,4 @@
-package com.example.eventsAmoBE.event.utils;
+package com.example.eventsAmoBE.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

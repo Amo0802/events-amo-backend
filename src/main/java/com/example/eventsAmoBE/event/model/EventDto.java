@@ -1,6 +1,6 @@
 package com.example.eventsAmoBE.event.model;
 
-import com.example.eventsAmoBE.user.User;
+import com.example.eventsAmoBE.user.model.User;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -44,5 +44,11 @@ public class EventDto {
         this(event); // calls the existing constructor
         this.eventSaved = user.getSavedEvents().contains(event);
         this.eventAttending = user.getAttendingEvents().contains(event);
+    }
+
+    public EventDto(Event event, boolean eventSaved, boolean eventAttending) {
+        this(event);
+        this.eventSaved = eventSaved;
+        this.eventAttending = eventAttending;
     }
 }

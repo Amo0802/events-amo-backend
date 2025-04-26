@@ -1,11 +1,11 @@
-package com.example.eventsAmoBE.user;
+package com.example.eventsAmoBE.user.model;
 
-import com.example.eventsAmoBE.event.model.City;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,7 +16,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Builder
 @Entity
 @NoArgsConstructor
@@ -30,9 +31,11 @@ public class User implements UserDetails {
 
     private String name;
     private String lastName;
+
+    @Column(unique = true)
     private String email;
+
     private String password;
-//    private City city;
     private boolean isAdmin;
 
     @ManyToMany
@@ -50,6 +53,17 @@ public class User implements UserDetails {
             inverseJoinColumns = @JoinColumn(name = "event_id")
     )
     private Set<Event> attendingEvents = new HashSet<>();
+
+    // Helper methods for relationship management
+    public void attendEvent(Event event) {
+        this.attendingEvents.add(event);
+        event.getAttendees().add(this);
+    }
+
+    public void unattendEvent(Event event) {
+        this.attendingEvents.remove(event);
+        event.getAttendees().remove(this);
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -81,5 +95,18 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return id != null && id.equals(user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }
