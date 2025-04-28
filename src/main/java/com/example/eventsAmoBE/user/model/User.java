@@ -37,6 +37,7 @@ public class User implements UserDetails {
 
     private String password;
     private boolean isAdmin;
+    private Integer avatarId = 0;
 
     @ManyToMany
     @JoinTable(

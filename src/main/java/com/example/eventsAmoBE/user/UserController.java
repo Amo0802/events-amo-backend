@@ -1,11 +1,9 @@
 package com.example.eventsAmoBE.user;
 
-//import com.example.eventsAmoBE.event.model.City;
 import com.example.eventsAmoBE.event.model.Event;
 import com.example.eventsAmoBE.event.model.EventDto;
 import com.example.eventsAmoBE.event.model.EventRequestDTO;
-import com.example.eventsAmoBE.user.model.User;
-import com.example.eventsAmoBE.user.model.UserDto;
+import com.example.eventsAmoBE.user.model.*;
 import com.example.eventsAmoBE.user.services.*;
 import com.example.eventsAmoBE.utils.EventMapper;
 import jakarta.transaction.Transactional;
@@ -29,6 +27,7 @@ public class UserController {
     private final SaveEventService saveEventService;
     private final AttendEventService attendEventService;
     private final SubmitEventService submitEventService;
+    private final ProfileUpdateService profileUpdateService;
     private final EventMapper eventMapper;
 
     @GetMapping("/{id}")
@@ -60,6 +59,37 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userByIdService.deleteUserById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // New profile endpoints
+    @PutMapping("/profile")
+    public ResponseEntity<UserDto> updateProfile(@RequestBody User user) {
+        User updatedUser = profileUpdateService.updateProfile(user);
+        return ResponseEntity.ok(new UserDto(updatedUser));
+    }
+
+    @PutMapping("/avatar")
+    public ResponseEntity<UserDto> updateAvatar(@RequestBody AvatarUpdateRequest request) {
+        User updatedUser = profileUpdateService.updateAvatar(request.getAvatarId());
+        return ResponseEntity.ok(new UserDto(updatedUser));
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<Void> updatePassword(@RequestBody PasswordChangeRequest request) {
+        profileUpdateService.updatePassword(request.getCurrentPassword(), request.getNewPassword());
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/email")
+    public ResponseEntity<Void> initiateEmailChange(@RequestBody EmailChangeRequest request) {
+        profileUpdateService.initiateEmailChange(request.getCurrentPassword(), request.getNewEmail());
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/verify-email")
+    public ResponseEntity<UserDto> verifyEmailChange(@RequestBody VerificationRequest request) {
+        User updatedUser = profileUpdateService.completeEmailChange(request.getVerificationCode());
+        return ResponseEntity.ok(new UserDto(updatedUser));
     }
 
     // Event saving functionality
@@ -118,9 +148,8 @@ public class UserController {
         submitEventService.submitEventProposal(user, event, images);
         return ResponseEntity.ok().build();
     }
-
+}
 //    @GetMapping("/city")
 //    public ResponseEntity<City> getCity(){
 //        return ResponseEntity.ok(userService.getCity());
 //    }
-}
