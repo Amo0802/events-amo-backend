@@ -4,6 +4,7 @@ import com.example.eventsAmoBE.security.JwtService;
 import com.example.eventsAmoBE.user.model.User;
 import com.example.eventsAmoBE.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,6 +40,7 @@ public class AuthenticationService {
                 .build();
     }
 
+    @CacheEvict(value = "currentUser", allEntries = true)
     public AuthResponseDto authenticate(AuthRequestDto request) {
         User user1 = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));

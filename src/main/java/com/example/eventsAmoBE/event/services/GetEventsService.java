@@ -6,7 +6,7 @@ import com.example.eventsAmoBE.event.model.EventDto;
 import com.example.eventsAmoBE.utils.PageResponse;
 import com.example.eventsAmoBE.user.model.User;
 import com.example.eventsAmoBE.user.services.CurrentUserService;
-import org.springframework.cache.annotation.Cacheable;
+//import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ public class GetEventsService {
         this.currentUserService = currentUserService;
     }
 
-    @Cacheable(value = "events", key = "'allEvents_' + #pageable.pageNumber + '_' + #pageable.pageSize", cacheManager = "eventCacheManager")
+    //@Cacheable(value = "events", key = "'allEvents_' + #pageable.pageNumber + '_' + #pageable.pageSize", cacheManager = "eventCacheManager")
     public PageResponse<EventDto> execute(Pageable pageable) {
         Page<Event> page = eventRepository.findUpcomingEvents(LocalDateTime.now(), pageable);
 

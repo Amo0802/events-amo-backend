@@ -26,7 +26,7 @@ public class SaveEventService {
 
     @Transactional
     public void saveEvent(Long eventId) {
-        User user = currentUserService.getCurrentUser();
+        User user = currentUserService.getCurrentUserWithSavedEvents();
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
@@ -36,7 +36,7 @@ public class SaveEventService {
 
     @Transactional
     public void unsaveEvent(Long eventId) {
-        User user = currentUserService.getCurrentUser();
+        User user = currentUserService.getCurrentUserWithSavedEvents();
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 

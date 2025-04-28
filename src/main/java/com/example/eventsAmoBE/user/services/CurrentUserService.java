@@ -3,6 +3,7 @@ package com.example.eventsAmoBE.user.services;
 //import com.example.eventsAmoBE.event.model.City;
 import com.example.eventsAmoBE.user.UserRepository;
 import com.example.eventsAmoBE.user.model.User;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,6 +28,7 @@ public class CurrentUserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+    @CacheEvict(value = "currentUser", allEntries = true)
     public void deleteCurrentUser() {
         userRepository.delete(getCurrentUser());
     }

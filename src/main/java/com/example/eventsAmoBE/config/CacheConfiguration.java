@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class CacheConfiguration {
     @Bean
     public CacheManager eventCacheManager() {
-        CaffeineCacheManager mgr = new CaffeineCacheManager("events", "mainEvents", "promotedEvents", "currentUser");
+        CaffeineCacheManager mgr = new CaffeineCacheManager("currentUser"); //"events", "mainEvents", "promotedEvents",
         mgr.setCaffeine(Caffeine.newBuilder()
                 .initialCapacity(50)
                 .maximumSize(500)

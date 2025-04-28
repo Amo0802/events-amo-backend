@@ -2,6 +2,7 @@ package com.example.eventsAmoBE.user.services;
 
 import com.example.eventsAmoBE.user.UserRepository;
 import com.example.eventsAmoBE.user.model.User;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,12 +21,14 @@ public class UserByIdService {
     }
 
     @Transactional
+    @CacheEvict(value = "currentUser", allEntries = true)
     public void deleteUserById(Long id) {
         User user = getUserById(id);
         userRepository.delete(user);
     }
 
     @Transactional
+    @CacheEvict(value = "currentUser", allEntries = true)
     public User updateUserById(Long id, User userDetails) {
         User user = getUserById(id);
 
@@ -38,6 +41,7 @@ public class UserByIdService {
     }
 
     @Transactional
+    @CacheEvict(value = "currentUser", allEntries = true)
     public User makeUserAdmin(Long id) {
         User user = getUserById(id);
         user.setAdmin(true);

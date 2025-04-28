@@ -26,9 +26,14 @@ public class AttendEventService {
 
     @Transactional
     public void attendEvent(Long eventId) {
-        User user = currentUserService.getCurrentUser();
+        User user = currentUserService.getCurrentUserWithAttendingEvents();
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        // Explicitly initialize the collection to prevent LazyInitializationException
+        if (user.getAttendingEvents() != null) {
+            user.getAttendingEvents().size(); // Force initialization
+        }
 
         // Use helper method for proper relationship management
         user.attendEvent(event);
@@ -39,9 +44,14 @@ public class AttendEventService {
 
     @Transactional
     public void unattendEvent(Long eventId) {
-        User user = currentUserService.getCurrentUser();
+        User user = currentUserService.getCurrentUserWithAttendingEvents();
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
+
+        // Explicitly initialize the collection
+        if (user.getAttendingEvents() != null) {
+            user.getAttendingEvents().size(); // Force initialization
+        }
 
         // Use helper method for proper relationship management
         user.unattendEvent(event);
