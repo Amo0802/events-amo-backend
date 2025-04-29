@@ -80,17 +80,17 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/email")
-    public ResponseEntity<Void> initiateEmailChange(@RequestBody EmailChangeRequest request) {
-        profileUpdateService.initiateEmailChange(request.getCurrentPassword(), request.getNewEmail());
-        return ResponseEntity.ok().build();
-    }
+//    @PutMapping("/email")
+//    public ResponseEntity<Void> initiateEmailChange(@RequestBody EmailChangeRequest request) {
+//        profileUpdateService.initiateEmailChange(request.getCurrentPassword(), request.getNewEmail());
+//        return ResponseEntity.ok().build();
+//    }
 
-    @PutMapping("/verify-email")
-    public ResponseEntity<UserDto> verifyEmailChange(@RequestBody VerificationRequest request) {
-        User updatedUser = profileUpdateService.completeEmailChange(request.getVerificationCode());
-        return ResponseEntity.ok(new UserDto(updatedUser));
-    }
+//    @PutMapping("/verify-email")
+//    public ResponseEntity<UserDto> verifyEmailChange(@RequestBody VerificationRequest request) {
+//        User updatedUser = profileUpdateService.completeEmailChange(request.getVerificationCode());
+//        return ResponseEntity.ok(new UserDto(updatedUser));
+//    }
 
     // Event saving functionality
     @PostMapping("/save-event/{eventId}")
@@ -129,10 +129,10 @@ public class UserController {
     }
 
     // For admin use only - to make another user an admin
-    @PutMapping("/make-admin/{id}")
+    @PutMapping("/make-admin")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDto> makeAdmin(@PathVariable Long id) {
-        return ResponseEntity.ok(new UserDto(userByIdService.makeUserAdmin(id)));
+    public ResponseEntity<UserDto> makeAdminByEmail(@RequestParam String email) {
+        return ResponseEntity.ok(new UserDto(userByIdService.makeUserAdminByEmail(email)));
     }
 
     @PostMapping(value = "/submit-event", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

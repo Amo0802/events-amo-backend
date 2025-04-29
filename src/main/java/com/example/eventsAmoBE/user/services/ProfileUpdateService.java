@@ -2,8 +2,6 @@ package com.example.eventsAmoBE.user.services;
 
 import com.example.eventsAmoBE.user.UserRepository;
 import com.example.eventsAmoBE.user.model.User;
-import jakarta.mail.MessagingException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,22 +13,14 @@ public class ProfileUpdateService {
     private final UserRepository userRepository;
     private final CurrentUserService currentUserService;
     private final PasswordEncoder passwordEncoder;
-    private final EmailVerificationService emailVerificationService;
-    private final EmailService emailService;
 
-    @Autowired
-    public ProfileUpdateService(
-            UserRepository userRepository,
-            CurrentUserService currentUserService,
-            PasswordEncoder passwordEncoder,
-            EmailVerificationService emailVerificationService,
-            EmailService emailService) {
+    public ProfileUpdateService(UserRepository userRepository, CurrentUserService currentUserService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.currentUserService = currentUserService;
         this.passwordEncoder = passwordEncoder;
-        this.emailVerificationService = emailVerificationService;
-        this.emailService = emailService;
     }
+//    private final EmailVerificationService emailVerificationService;
+//    private final EmailService emailService;
 
     @Transactional
     public User updateProfile(User updatedUser) {
@@ -71,52 +61,52 @@ public class ProfileUpdateService {
         userRepository.save(currentUser);
     }
 
-    @Transactional
-    public void initiateEmailChange(String currentPassword, String newEmail) {
-        // Get current user
-        User currentUser = currentUserService.getCurrentUser();
-
-        // Verify current password
-        if (!passwordEncoder.matches(currentPassword, currentUser.getPassword())) {
-            throw new BadCredentialsException("Current password is incorrect");
-        }
-
-        // Check if email already exists
-        if (userRepository.existsByEmail(newEmail)) {
-            throw new RuntimeException("Email already registered");
-        }
-
-        // Generate verification code
-        String code = emailVerificationService.generateVerificationCode(currentUser.getId(), newEmail);
-
-        // Send verification email
-        try {
-            emailService.sendVerificationEmail(newEmail, code);
-        } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send verification email", e);
-        }
-    }
-
-    @Transactional
-    public User completeEmailChange(String verificationCode) {
-        // Get current user
-        User currentUser = currentUserService.getCurrentUser();
-
-        // Verify code
-        boolean isValid = emailVerificationService.verifyCode(currentUser.getId(), verificationCode);
-        if (!isValid) {
-            throw new RuntimeException("Invalid or expired verification code");
-        }
-
-        // Get pending email
-        String newEmail = emailVerificationService.getPendingEmail(currentUser.getId());
-        if (newEmail == null) {
-            throw new RuntimeException("No pending email change found");
-        }
-
-        // Update email
-        currentUser.setEmail(newEmail);
-
-        return userRepository.save(currentUser);
-    }
+//    @Transactional
+//    public void initiateEmailChange(String currentPassword, String newEmail) {
+//        // Get current user
+//        User currentUser = currentUserService.getCurrentUser();
+//
+//        // Verify current password
+//        if (!passwordEncoder.matches(currentPassword, currentUser.getPassword())) {
+//            throw new BadCredentialsException("Current password is incorrect");
+//        }
+//
+//        // Check if email already exists
+//        if (userRepository.existsByEmail(newEmail)) {
+//            throw new RuntimeException("Email already registered");
+//        }
+//
+//        // Generate verification code
+//        String code = emailVerificationService.generateVerificationCode(currentUser.getId(), newEmail);
+//
+//        // Send verification email
+//        try {
+//            emailService.sendVerificationEmail(newEmail, code);
+//        } catch (MessagingException e) {
+//            throw new RuntimeException("Failed to send verification email", e);
+//        }
+//    }
+//
+//    @Transactional
+//    public User completeEmailChange(String verificationCode) {
+//        // Get current user
+//        User currentUser = currentUserService.getCurrentUser();
+//
+//        // Verify code
+//        boolean isValid = emailVerificationService.verifyCode(currentUser.getId(), verificationCode);
+//        if (!isValid) {
+//            throw new RuntimeException("Invalid or expired verification code");
+//        }
+//
+//        // Get pending email
+//        String newEmail = emailVerificationService.getPendingEmail(currentUser.getId());
+//        if (newEmail == null) {
+//            throw new RuntimeException("No pending email change found");
+//        }
+//
+//        // Update email
+//        currentUser.setEmail(newEmail);
+//
+//        return userRepository.save(currentUser);
+//    }
 }

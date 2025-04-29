@@ -42,8 +42,9 @@ public class UserByIdService {
 
     @Transactional
     @CacheEvict(value = "currentUser", allEntries = true)
-    public User makeUserAdmin(Long id) {
-        User user = getUserById(id);
+    public User makeUserAdminByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
         user.setAdmin(true);
         return userRepository.save(user);
     }
