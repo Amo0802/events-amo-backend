@@ -22,9 +22,6 @@ public class EventDto {
     private boolean mainEvent;
     private boolean promoted;
 
-    private boolean eventSaved;
-    private boolean eventAttending;
-
     public EventDto(Event event) {
         this.id = event.getId();
         this.name = event.getName();
@@ -38,17 +35,5 @@ public class EventDto {
         this.priority = event.getPriority();
         this.mainEvent = event.isMainEvent();
         this.promoted = event.isPromoted();
-    }
-
-    public EventDto(Event event, User user) {
-        this(event); // calls the existing constructor
-        this.eventSaved = user.getSavedEvents().contains(event);
-        this.eventAttending = user.getAttendingEvents().contains(event);
-    }
-
-    public EventDto(Event event, boolean eventSaved, boolean eventAttending) {
-        this(event);
-        this.eventSaved = eventSaved;
-        this.eventAttending = eventAttending;
     }
 }

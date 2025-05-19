@@ -3,6 +3,7 @@ package com.example.eventsAmoBE.user.services;
 import com.example.eventsAmoBE.event.EventRepository;
 import com.example.eventsAmoBE.event.model.Event;
 import com.example.eventsAmoBE.event.model.EventDto;
+import com.example.eventsAmoBE.exceptions.EventNotFoundException;
 import com.example.eventsAmoBE.user.UserRepository;
 import com.example.eventsAmoBE.user.model.User;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,7 @@ public class SaveEventService {
     public void saveEvent(Long eventId) {
         User user = currentUserService.getCurrentUserWithSavedEvents();
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
+                .orElseThrow(EventNotFoundException::new);
 
         user.getSavedEvents().add(event);
         userRepository.save(user);
@@ -38,7 +39,7 @@ public class SaveEventService {
     public void unsaveEvent(Long eventId) {
         User user = currentUserService.getCurrentUserWithSavedEvents();
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new RuntimeException("Event not found"));
+                .orElseThrow(EventNotFoundException::new);
 
         user.getSavedEvents().remove(event);
         userRepository.save(user);
@@ -49,7 +50,7 @@ public class SaveEventService {
         User user = currentUserService.getCurrentUserWithSavedEvents();
 
         return user.getSavedEvents().stream()
-                .map(event -> new EventDto(event, user))
+                .map(EventDto::new)
                 .collect(Collectors.toSet());
     }
 }

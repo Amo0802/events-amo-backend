@@ -1,5 +1,6 @@
 package com.example.eventsAmoBE.auth;
 
+import com.example.eventsAmoBE.exceptions.UserNotFoundException;
 import com.example.eventsAmoBE.security.JwtService;
 import com.example.eventsAmoBE.user.model.User;
 import com.example.eventsAmoBE.user.UserRepository;
@@ -43,7 +44,7 @@ public class AuthenticationService {
     @CacheEvict(value = "currentUser", allEntries = true)
     public AuthResponseDto authenticate(AuthRequestDto request) {
         User user1 = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
 
         System.out.println("Password matches: " +
                 passwordEncoder.matches(request.getPassword(), user1.getPassword()));

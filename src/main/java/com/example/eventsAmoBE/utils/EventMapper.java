@@ -1,7 +1,7 @@
 package com.example.eventsAmoBE.utils;
 
 import com.example.eventsAmoBE.event.model.Event;
-import com.example.eventsAmoBE.event.model.EventRequestDTO;
+import com.example.eventsAmoBE.event.model.EventRequestDto;
 import com.example.eventsAmoBE.event.model.Category;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Component
 public class EventMapper {
 
-    public Event fromDto(EventRequestDTO eventDto) {
+    public Event fromDto(EventRequestDto eventDto) {
         Event event = new Event();
 
         // Mapping EventRequestDTO to Event entity

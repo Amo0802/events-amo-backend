@@ -1,6 +1,7 @@
 package com.example.eventsAmoBE.user.services;
 
 import com.example.eventsAmoBE.user.UserRepository;
+import com.example.eventsAmoBE.user.model.ProfileChangeRequest;
 import com.example.eventsAmoBE.user.model.User;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,15 +24,16 @@ public class ProfileUpdateService {
 //    private final EmailService emailService;
 
     @Transactional
-    public User updateProfile(User updatedUser) {
+    public User updateProfile(String newName, String newLastName) {
         // Get current user
         User currentUser = currentUserService.getCurrentUser();
 
         // Update only name and lastName
-        currentUser.setName(updatedUser.getName());
-        currentUser.setLastName(updatedUser.getLastName());
+        currentUser.setName(newName);
+        currentUser.setLastName(newLastName);
+        userRepository.save(currentUser);
 
-        return userRepository.save(currentUser);
+        return currentUser;
     }
 
     @Transactional
@@ -41,8 +43,9 @@ public class ProfileUpdateService {
 
         // Update avatar ID
         currentUser.setAvatarId(avatarId);
+        userRepository.save(currentUser);
 
-        return userRepository.save(currentUser);
+        return currentUser;
     }
 
     @Transactional

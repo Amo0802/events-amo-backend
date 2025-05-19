@@ -1,21 +1,27 @@
 package com.example.eventsAmoBE.event.services;
 
 import com.example.eventsAmoBE.event.EventRepository;
+import com.example.eventsAmoBE.event.model.CreateEventDto;
 import com.example.eventsAmoBE.event.model.Event;
 //import org.springframework.cache.annotation.CacheEvict;
+import com.example.eventsAmoBE.validators.EventValidator;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CreateEventService {
 
     private final EventRepository eventRepository;
+    private final EventValidator eventValidator;
 
-    public CreateEventService(EventRepository eventRepository) {
+    public CreateEventService(EventRepository eventRepository, EventValidator eventValidator) {
         this.eventRepository = eventRepository;
+        this.eventValidator = eventValidator;
     }
 
     //@CacheEvict(value = "events", allEntries = true)
-    public Event execute(Event input) {
+    public Event execute(CreateEventDto input) {
+
+        eventValidator.validateCreateEvent(input);
 
         var event = Event.builder()
                 .name(input.getName())

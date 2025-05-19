@@ -1,5 +1,6 @@
 package com.example.eventsAmoBE.user.services;
 
+import com.example.eventsAmoBE.exceptions.UserNotFoundException;
 import com.example.eventsAmoBE.user.UserRepository;
 import com.example.eventsAmoBE.user.model.User;
 import org.springframework.cache.annotation.CacheEvict;
@@ -17,7 +18,7 @@ public class UserByIdService {
 
     public User getUserById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
     }
 
     @Transactional

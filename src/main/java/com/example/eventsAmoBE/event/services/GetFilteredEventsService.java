@@ -20,11 +20,9 @@ import java.util.Optional;
 public class GetFilteredEventsService {
 
     private final EventRepository eventRepository;
-    private final CurrentUserService currentUserService;
 
-    public GetFilteredEventsService(EventRepository eventRepository, CurrentUserService currentUserService) {
+    public GetFilteredEventsService(EventRepository eventRepository) {
         this.eventRepository = eventRepository;
-        this.currentUserService = currentUserService;
     }
 
     public PageResponse<EventDto> execute(Pageable pageable, String city, String category) {
@@ -34,12 +32,8 @@ public class GetFilteredEventsService {
 
         Page<Event> page = eventRepository.findUpcomingByCityAndCategory(city1, category1, LocalDateTime.now(), pageable);
 
-        Optional<User> optionalUser = currentUserService.getOptionalCurrentUser();
-
         List<EventDto> dtos = page.getContent().stream()
-                .map(event -> optionalUser
-                        .map(user -> new EventDto(event, user))
-                        .orElseGet(() -> new EventDto(event, false, false)))
+                .map(EventDto::new)
                 .toList();
 
         return new PageResponse<>(

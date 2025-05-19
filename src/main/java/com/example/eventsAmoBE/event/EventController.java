@@ -1,9 +1,11 @@
 package com.example.eventsAmoBE.event;
 
+import com.example.eventsAmoBE.event.model.CreateEventDto;
 import com.example.eventsAmoBE.event.model.Event;
 import com.example.eventsAmoBE.event.model.EventDto;
 import com.example.eventsAmoBE.event.services.*;
 import com.example.eventsAmoBE.utils.PageResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +30,7 @@ public class EventController {
     private final UpdateEventService updateEventService;
 
     @PostMapping("/event")
-    public ResponseEntity<EventDto> createEvent(@RequestBody Event event) {
+    public ResponseEntity<EventDto> createEvent(@Valid @RequestBody CreateEventDto event) {
         Event response = createEventService.execute(event);
         URI location = URI.create("/event/" + response.getId());
         return ResponseEntity.created(location).body(new EventDto(response));

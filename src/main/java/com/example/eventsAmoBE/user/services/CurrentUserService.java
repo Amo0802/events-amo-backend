@@ -1,6 +1,7 @@
 package com.example.eventsAmoBE.user.services;
 
 //import com.example.eventsAmoBE.event.model.City;
+import com.example.eventsAmoBE.exceptions.UserNotFoundException;
 import com.example.eventsAmoBE.user.UserRepository;
 import com.example.eventsAmoBE.user.model.User;
 import org.springframework.cache.annotation.CacheEvict;
@@ -25,7 +26,7 @@ public class CurrentUserService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
     }
 
     @CacheEvict(value = "currentUser", allEntries = true)
@@ -37,14 +38,14 @@ public class CurrentUserService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         return userRepository.findByEmailWithSavedEvents(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
     }
 
     public User getCurrentUserWithAttendingEvents() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         return userRepository.findByEmailWithAttendingEvents(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(UserNotFoundException::new);
     }
 
     public Optional<User> getOptionalCurrentUser() {
@@ -59,9 +60,4 @@ public class CurrentUserService {
         return userRepository.findByEmail(email);
     }
 
-//    public City getCity(){
-//        User user = getCurrentUser();
-//
-//        return user.getCity();
-//    }
 }

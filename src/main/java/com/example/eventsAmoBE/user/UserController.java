@@ -2,7 +2,7 @@ package com.example.eventsAmoBE.user;
 
 import com.example.eventsAmoBE.event.model.Event;
 import com.example.eventsAmoBE.event.model.EventDto;
-import com.example.eventsAmoBE.event.model.EventRequestDTO;
+import com.example.eventsAmoBE.event.model.EventRequestDto;
 import com.example.eventsAmoBE.user.model.*;
 import com.example.eventsAmoBE.user.services.*;
 import com.example.eventsAmoBE.utils.EventMapper;
@@ -61,10 +61,9 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    // New profile endpoints
     @PutMapping("/profile")
-    public ResponseEntity<UserDto> updateProfile(@RequestBody User user) {
-        User updatedUser = profileUpdateService.updateProfile(user);
+    public ResponseEntity<UserDto> updateProfile(@RequestBody ProfileChangeRequest request) {
+        User updatedUser = profileUpdateService.updateProfile(request.getNewName(), request.getNewLastName());
         return ResponseEntity.ok(new UserDto(updatedUser));
     }
 
@@ -138,7 +137,7 @@ public class UserController {
     @PostMapping(value = "/submit-event", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN') or hasAuthority('USER')")
     public ResponseEntity<Void> submitEvent(
-            @RequestPart("event") EventRequestDTO eventDto,
+            @RequestPart("event") EventRequestDto eventDto,
             @RequestPart(value = "images", required = false) List<MultipartFile> images) {
 
         User user = currentUserService.getCurrentUser();
@@ -149,7 +148,3 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 }
-//    @GetMapping("/city")
-//    public ResponseEntity<City> getCity(){
-//        return ResponseEntity.ok(userService.getCity());
-//    }
