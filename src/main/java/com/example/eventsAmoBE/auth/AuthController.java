@@ -1,5 +1,6 @@
 package com.example.eventsAmoBE.auth;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +17,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponseDto> register(
-            @RequestBody RegisterRequestDto request
+            @Valid @RequestBody RegisterRequestDto request
     ) {
         return ResponseEntity.ok(authService.register(request));
     }

@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
+//This is Dto for SubmitEventService for sending email to admin
 @Data
 public class EventRequestDto {
 

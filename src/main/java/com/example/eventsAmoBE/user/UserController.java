@@ -7,6 +7,7 @@ import com.example.eventsAmoBE.user.model.*;
 import com.example.eventsAmoBE.user.services.*;
 import com.example.eventsAmoBE.utils.EventMapper;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -137,7 +138,7 @@ public class UserController {
     @PostMapping(value = "/submit-event", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN') or hasAuthority('USER')")
     public ResponseEntity<Void> submitEvent(
-            @RequestPart("event") EventRequestDto eventDto,
+            @Valid @RequestPart("event") EventRequestDto eventDto,
             @RequestPart(value = "images", required = false) List<MultipartFile> images) {
 
         User user = currentUserService.getCurrentUser();
