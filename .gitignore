@@ -41,10 +41,15 @@ build/
 .gradle/
 
 # Spring Boot config
-application.properties
+#application.properties
+application-dev.properties
+application-prod.properties
 application.yml
 
 # Maven Wrapper
 !.mvn/wrapper/maven-wrapper.properties
 !mvnw
 !mvnw.cmd
+
+.env.dev
+.env.prod
