@@ -37,6 +37,8 @@ public class User implements UserDetails {
 
     private String password;
     private boolean isAdmin;
+
+    @Builder.Default
     private Integer avatarId = 0;
 
     @ManyToMany
@@ -45,6 +47,7 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "event_id")
     )
+    @Builder.Default
     private Set<Event> savedEvents = new HashSet<>();
 
     @ManyToMany
@@ -53,6 +56,7 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "event_id")
     )
+    @Builder.Default
     private Set<Event> attendingEvents = new HashSet<>();
 
     // Helper methods for relationship management

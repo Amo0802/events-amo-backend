@@ -1,0 +1,33 @@
+# Build artifacts
+target/*
+!target/*.jar
+
+# Git
+.git
+.gitignore
+
+# Docs and metadata
+README.md
+Dockerfile
+.dockerignore
+
+# Logs and OS junk
+*.log
+.DS_Store
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Node (if not used)
+node_modules/
+
+# Temporary and test files
+*.tmp
+*.swp
+*.bak
+*.class
+surefire-reports/

@@ -38,6 +38,7 @@ public class Event {
     @CollectionTable(name = "event_categories", joinColumns = @JoinColumn(name = "event_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "category")
+    @Builder.Default
     private Set<Category> categories = new HashSet<>();
 
     private int priority;
@@ -45,6 +46,7 @@ public class Event {
     private boolean promoted;
 
     @ManyToMany(mappedBy = "attendingEvents")
+    @Builder.Default
     private Set<User> attendees = new HashSet<>();
 
     @CreationTimestamp
