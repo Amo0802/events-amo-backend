@@ -40,12 +40,12 @@ RUN chown spring:spring app.jar
 # Switch to non-root user
 USER spring:spring
 
-# Expose the port
-EXPOSE 8080
+# Expose the port (Railway will set this via PORT env var)
+EXPOSE ${PORT:-8080}
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:8080/actuator/health || exit 1
+  CMD curl -f http://localhost:${PORT:-8080}/actuator/health || exit 1
 
 # JVM optimizations for containerized environment
 ENTRYPOINT ["java", \
@@ -54,5 +54,6 @@ ENTRYPOINT ["java", \
     "-XX:+UseG1GC", \
     "-XX:+UseStringDeduplication", \
     "-Djava.security.egd=file:/dev/./urandom", \
+    "-Dserver.port=${PORT:-8080}", \
     "-jar", \
     "/app/app.jar"]
