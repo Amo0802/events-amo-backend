@@ -45,7 +45,8 @@ public class SecurityConfig {
                                 "/event/category",
                                 "/event/search",
                                 "/event/filter",
-                                "/actuator/health"
+                                "/actuator/health",
+                                "/"
                         ).permitAll()
                         .requestMatchers("/event", "/event/{id}")
                         .hasRole("ADMIN")
