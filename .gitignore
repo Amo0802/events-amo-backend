@@ -43,7 +43,6 @@ build/
 # Spring Boot config
 #application.properties
 application-dev.properties
-application-prod.properties
 application.yml
 
 # Maven Wrapper
@@ -51,5 +50,6 @@ application.yml
 !mvnw
 !mvnw.cmd
 
-.env.dev
+nbtn/.env.dev
 .env.prod
+/nbtn/

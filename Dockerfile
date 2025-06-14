@@ -54,5 +54,6 @@ ENTRYPOINT ["java", \
     "-XX:+UseG1GC", \
     "-XX:+UseStringDeduplication", \
     "-Djava.security.egd=file:/dev/./urandom", \
+    "-Dspring.profiles.active=prod", \
     "-jar", \
     "/app/app.jar"]

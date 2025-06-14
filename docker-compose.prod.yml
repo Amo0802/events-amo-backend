@@ -1,41 +1,140 @@
 services:
+  # Traefik reverse proxy
+  traefik:
+    image: traefik:v3.1
+    container_name: eventsamo-traefik
+    restart: unless-stopped
+    command:
+      - "--log.level=INFO"
+      - "--accesslog=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=traefik-network"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # HTTP to HTTPS redirect
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      # Let's Encrypt configuration
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=arminramusovic11@gmail.com"  # Change this!
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      # Optional: Enable Traefik dashboard (remove in production)
+#      - "--api.dashboard=true"
+#      - "--api.insecure=true"
+    ports:
+      - "80:80"
+      - "443:443"
+#      - "8080:8080"  # Traefik dashboard (remove in production)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+    networks:
+      - traefik-network
+
   app:
     image: myapp:prod
+    container_name: eventsamo-backend
     build:
       context: .
       dockerfile: Dockerfile
-    env_file:
-      - .env.prod
     environment:
       SPRING_PROFILES_ACTIVE: prod
-    ports:
-      - "8080:8080"
+      SPRING_DATASOURCE_URL: jdbc:mysql://eventsamo-mysql:3306/eventsdb
+      SPRING_DATASOURCE_USERNAME_FILE: /run/secrets/db-username
+      SPRING_DATASOURCE_PASSWORD_FILE: /run/secrets/db-password
+      JWT_SECRET_FILE: /run/secrets/jwt-secret
+      MAIL_USERNAME_FILE: /run/secrets/mail-username
+      MAIL_PASSWORD_FILE: /run/secrets/mail-password
+    expose:
+      - "8080"  # Internal port for Traefik
     depends_on:
       db:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - app-network
+      - traefik-network  # Connect to Traefik network
+    volumes:
+      - app-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    labels:
+      # Enable Traefik for this service
+      - "traefik.enable=true"
+      - "traefik.http.routers.eventsamo-app.rule=Host(`arminramusovic.com`)"  # Change this!
+      - "traefik.http.routers.eventsamo-app.entrypoints=websecure"
+      - "traefik.http.routers.eventsamo-app.tls.certresolver=letsencrypt"
+      - "traefik.http.services.eventsamo-app.loadbalancer.server.port=8080"
+      # Optional: Add middleware for rate limiting, auth, etc.
+      # - "traefik.http.middlewares.eventsamo-ratelimit.ratelimit.average=100"
+      # - "traefik.http.routers.eventsamo-app.middlewares=eventsamo-ratelimit"
+    secrets:
+      - db-username
+      - db-password
+      - jwt-secret
+      - mail-username
+      - mail-password
 
   db:
-    image: mysql:8
-    container_name: mysql-prod
+    image: mysql:8.0
+    container_name: eventsamo-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql-root-password
       MYSQL_DATABASE: eventsdb
-      MYSQL_USER: ${SPRING_DATASOURCE_USERNAME}
-      MYSQL_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      MYSQL_USER_FILE: /run/secrets/db-username
+      MYSQL_PASSWORD_FILE: /run/secrets/db-password
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}" ]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$(cat /run/secrets/mysql-root-password)"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-    ports:
-      - "3306:3306"
+    expose:
+      - "3306"  # Only accessible internally
     volumes:
-      - mysql_prod_data:/var/lib/mysql
-    env_file:
-          - .env.prod
+      - mysql_data:/var/lib/mysql
+      - mysql_config:/etc/mysql/conf.d
+    networks:
+      - app-network  # Only connected to app network
+    command: --default-authentication-plugin=mysql_native_password
+    secrets:
+      - mysql-root-password
+      - db-username
+      - db-password
 
 volumes:
-  mysql_prod_data:
+  mysql_data:
+    driver: local
+  mysql_config:
+    driver: local
+  app-logs:
+    driver: local
+  traefik_letsencrypt:  # New volume for Let's Encrypt certificates
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
+  traefik-network:  # New network for Traefik
+    driver: bridge
+    external: false
+
+secrets:
+  mysql-root-password:
+    file: ./secrets/mysql-root-password.txt
+  db-username:
+    file: ./secrets/db-username.txt
+  db-password:
+    file: ./secrets/db-password.txt
+  jwt-secret:
+    file: ./secrets/jwt-secret.txt
+  mail-username:
+    file: ./secrets/mail-username.txt
+  mail-password:
+    file: ./secrets/mail-password.txt
