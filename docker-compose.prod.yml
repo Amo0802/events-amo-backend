@@ -41,11 +41,11 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:mysql://eventsamo-mysql:3306/eventsdb
-      SPRING_DATASOURCE_USERNAME_FILE: /run/secrets/db-username
-      SPRING_DATASOURCE_PASSWORD_FILE: /run/secrets/db-password
-      JWT_SECRET_FILE: /run/secrets/jwt-secret
-      MAIL_USERNAME_FILE: /run/secrets/mail-username
-      MAIL_PASSWORD_FILE: /run/secrets/mail-password
+      SPRING_DATASOURCE_USERNAME: /run/secrets/db-username
+      SPRING_DATASOURCE_PASSWORD: /run/secrets/db-password
+      JWT_SECRET: /run/secrets/jwt-secret
+      MAIL_USERNAME: /run/secrets/mail-username
+      MAIL_PASSWORD: /run/secrets/mail-password
     expose:
       - "8080"  # Internal port for Traefik
     depends_on:
@@ -66,9 +66,19 @@ services:
     labels:
       # Enable Traefik for this service
       - "traefik.enable=true"
-      - "traefik.http.routers.eventsamo-app.rule=Host(`arminramusovic.com`)"  # Change this!
+      # CRITICAL: Use the full network name with project prefix
+      - "traefik.docker.network=events-amo-backend_traefik-network"
+      - "traefik.http.routers.eventsamo-app.rule=Host(`api.arminramusovic.com`)"
       - "traefik.http.routers.eventsamo-app.entrypoints=websecure"
       - "traefik.http.routers.eventsamo-app.tls.certresolver=letsencrypt"
+      # HTTP router (redirect to HTTPS)
+      - "traefik.http.routers.eventsamo-app-http.rule=Host(`api.arminramusovic.com`)"
+      - "traefik.http.routers.eventsamo-app-http.entrypoints=web"
+      - "traefik.http.routers.eventsamo-app-http.middlewares=redirect-to-https"
+      # Redirect middleware
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+      # Service configuration - specify the port
       - "traefik.http.services.eventsamo-app.loadbalancer.server.port=8080"
       # Optional: Add middleware for rate limiting, auth, etc.
       # - "traefik.http.middlewares.eventsamo-ratelimit.ratelimit.average=100"
@@ -85,10 +95,10 @@ services:
     container_name: eventsamo-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql-root-password
+      MYSQL_ROOT_PASSWORD: /run/secrets/mysql-root-password
       MYSQL_DATABASE: eventsdb
-      MYSQL_USER_FILE: /run/secrets/db-username
-      MYSQL_PASSWORD_FILE: /run/secrets/db-password
+      MYSQL_USER: /run/secrets/db-username
+      MYSQL_PASSWORD: /run/secrets/db-password
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$(cat /run/secrets/mysql-root-password)"]
       interval: 10s
