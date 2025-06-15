@@ -41,11 +41,11 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SPRING_DATASOURCE_URL: jdbc:mysql://eventsamo-mysql:3306/eventsdb
-      SPRING_DATASOURCE_USERNAME: /run/secrets/db-username
-      SPRING_DATASOURCE_PASSWORD: /run/secrets/db-password
-      JWT_SECRET: /run/secrets/jwt-secret
-      MAIL_USERNAME: /run/secrets/mail-username
-      MAIL_PASSWORD: /run/secrets/mail-password
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
     expose:
       - "8080"  # Internal port for Traefik
     depends_on:
@@ -83,22 +83,16 @@ services:
       # Optional: Add middleware for rate limiting, auth, etc.
       # - "traefik.http.middlewares.eventsamo-ratelimit.ratelimit.average=100"
       # - "traefik.http.routers.eventsamo-app.middlewares=eventsamo-ratelimit"
-    secrets:
-      - db-username
-      - db-password
-      - jwt-secret
-      - mail-username
-      - mail-password
 
   db:
     image: mysql:8.0
     container_name: eventsamo-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: /run/secrets/mysql-root-password
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: eventsdb
-      MYSQL_USER: /run/secrets/db-username
-      MYSQL_PASSWORD: /run/secrets/db-password
+      MYSQL_USER: ${SPRING_DATASOURCE_USERNAME}
+      MYSQL_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$(cat /run/secrets/mysql-root-password)"]
       interval: 10s
@@ -113,10 +107,6 @@ services:
     networks:
       - app-network  # Only connected to app network
     command: --default-authentication-plugin=mysql_native_password
-    secrets:
-      - mysql-root-password
-      - db-username
-      - db-password
 
 volumes:
   mysql_data:
@@ -134,17 +124,3 @@ networks:
   traefik-network:  # New network for Traefik
     driver: bridge
     external: false
-
-secrets:
-  mysql-root-password:
-    file: ./secrets/mysql-root-password.txt
-  db-username:
-    file: ./secrets/db-username.txt
-  db-password:
-    file: ./secrets/db-password.txt
-  jwt-secret:
-    file: ./secrets/jwt-secret.txt
-  mail-username:
-    file: ./secrets/mail-username.txt
-  mail-password:
-    file: ./secrets/mail-password.txt
