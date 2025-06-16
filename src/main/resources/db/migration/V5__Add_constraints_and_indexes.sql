@@ -1,7 +1,7 @@
 -- Add constraints for enum validation (optional but good practice)
 ALTER TABLE event
 ADD CONSTRAINT check_city
-CHECK (city IN ('PODGORICA', 'BERANE', 'NIKSIC'));
+CHECK (city IN ('SPAIN', 'FRANCE', 'GERMANY', 'ITALY', 'OTHER'));
 
 ALTER TABLE event_categories
 ADD CONSTRAINT check_category
