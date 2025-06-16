@@ -5,6 +5,7 @@ public enum City {
     SPAIN,
     FRANCE,
     GERMANY,
-    ITALY
+    ITALY,
+    OTHER
 
 }

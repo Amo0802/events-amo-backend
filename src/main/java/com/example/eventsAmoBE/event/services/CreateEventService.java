@@ -21,7 +21,7 @@ public class CreateEventService {
     //@CacheEvict(value = "events", allEntries = true)
     public Event execute(CreateEventDto input) {
 
-        eventValidator.validateCreateEvent(input);
+        //eventValidator.validateCreateEvent(input);
 
         var event = Event.builder()
                 .name(input.getName())
