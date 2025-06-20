@@ -1,0 +1,170 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: amo0802/events-amo-backend
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+  build-and-deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    # Only deploy on push to main (not on pull requests)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/amo0802/events-amo-backend
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy Backend to VPS
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            # Navigate to deployment directory
+            cd ~/amo-app/events-amo-backend
+            
+            CONTAINER_NAME="eventsamo-backend-${{ github.sha }}"
+            CONTAINER_NAME_SHORT="${CONTAINER_NAME:0:30}"
+            
+            # Login to registry
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # Pull new backend image
+            docker pull ghcr.io/amo0802/events-amo-backend:latest
+            
+            # Stop and remove any existing container with this name
+            docker stop $CONTAINER_NAME_SHORT 2>/dev/null || true
+            docker rm $CONTAINER_NAME_SHORT 2>/dev/null || true
+            
+            # Create new backend container
+            echo "Running container from image: ghcr.io/amo0802/events-amo-backend:latest"
+            docker run -d \
+              --name $CONTAINER_NAME_SHORT \
+              --network events-amo-backend_app-network \
+              --network events-amo-backend_traefik-network \
+              -e SPRING_PROFILES_ACTIVE=prod \
+              -e SPRING_DATASOURCE_URL=jdbc:mysql://eventsamo-mysql:3306/eventsdb \
+              -e SPRING_DATASOURCE_USERNAME="${{ secrets.SPRING_DATASOURCE_USERNAME }}" \
+              -e SPRING_DATASOURCE_PASSWORD="${{ secrets.SPRING_DATASOURCE_PASSWORD }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e MAIL_USERNAME="${{ secrets.MAIL_USERNAME }}" \
+              -e MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}" \
+              --label "traefik.enable=true" \
+              --label "traefik.docker.network=events-amo-backend_traefik-network" \
+              --label "traefik.http.routers.$CONTAINER_NAME_SHORT.rule=Host(\`api.arminramusovic.com\`)" \
+              --label "traefik.http.routers.$CONTAINER_NAME_SHORT.entrypoints=websecure" \
+              --label "traefik.http.routers.$CONTAINER_NAME_SHORT.tls.certresolver=letsencrypt" \
+              --label "traefik.http.services.$CONTAINER_NAME_SHORT.loadbalancer.server.port=8080" \
+              --label "traefik.http.routers.$CONTAINER_NAME_SHORT-http.rule=Host(\`api.arminramusovic.com\`)" \
+              --label "traefik.http.routers.$CONTAINER_NAME_SHORT-http.entrypoints=web" \
+              --label "traefik.http.routers.$CONTAINER_NAME_SHORT-http.middlewares=$CONTAINER_NAME_SHORT" \
+              --label "traefik.http.middlewares.$CONTAINER_NAME_SHORT.redirectscheme.scheme=https" \
+              --label "traefik.http.middlewares.$CONTAINER_NAME_SHORT.redirectscheme.permanent=true" \
+              --health-cmd="curl -f http://localhost:8080/actuator/health || exit 1" \
+              --health-interval=30s \
+              --health-timeout=10s \
+              --health-retries=3 \
+              --health-start-period=120s \
+              ghcr.io/amo0802/events-amo-backend:latest
+            
+            # Wait for health check
+            echo "Waiting for new backend to be healthy..."
+            sleep 15
+            
+            success=false
+            for i in {1..10}; do
+            if docker exec $CONTAINER_NAME_SHORT curl -fs http://localhost:8080/actuator/health > /dev/null; then
+            echo "New backend is healthy!"
+            success=true
+            break
+            fi
+            sleep 10
+            done
+            
+            if [ "$success" = false ]; then
+            echo "New backend failed health check. Cleaning up..."
+            docker stop $CONTAINER_NAME_SHORT 2>/dev/null || true
+            docker rm $CONTAINER_NAME_SHORT 2>/dev/null || true
+            exit 1
+            fi
+            
+            # Stop old backend
+            docker stop eventsamo-backend 2>/dev/null || true
+            
+            # Wait for connections to drain
+            sleep 10
+            
+            # Remove old backend
+            docker rm eventsamo-backend 2>/dev/null || true
+            
+            # Rename new backend
+            docker rename $CONTAINER_NAME_SHORT eventsamo-backend
+            
+            echo "Backend deployment completed!"

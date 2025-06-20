@@ -45,7 +45,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_PASSWORD: "${MAIL_PASSWORD}"
     expose:
       - "8080"  # Internal port for Traefik
     depends_on:
@@ -94,7 +94,7 @@ services:
       MYSQL_USER: ${SPRING_DATASOURCE_USERNAME}
       MYSQL_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$(cat /run/secrets/mysql-root-password)"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${SPRING_DATASOURCE_USERNAME}", "-p${SPRING_DATASOURCE_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
