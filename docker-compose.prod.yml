@@ -20,12 +20,17 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.email=arminramusovic11@gmail.com"  # Change this!
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
       # Optional: Enable Traefik dashboard (remove in production)
-#      - "--api.dashboard=true"
-#      - "--api.insecure=true"
+      #- "--api.dashboard=true"
+      #- "--api.insecure=true"
     ports:
       - "80:80"
       - "443:443"
-#      - "8080:8080"  # Traefik dashboard (remove in production)
+      #- "8080:8080"  # Traefik dashboard (remove in production)
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik_letsencrypt:/letsencrypt
@@ -48,6 +53,11 @@ services:
       MAIL_PASSWORD: "${MAIL_PASSWORD}"
     expose:
       - "8080"  # Internal port for Traefik
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     depends_on:
       db:
         condition: service_healthy
@@ -104,6 +114,11 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - mysql_config:/etc/mysql/conf.d
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - app-network  # Only connected to app network
     command: --default-authentication-plugin=mysql_native_password
